@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  mysql:
+    image: mysql:latest
+    volumes:
+      - container-db-volume:/var/lib/mysql
+      - ./dumpdb.sql.gz:/docker-entrypoint-initdb.d/dumpdb.sql.gz
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: testcase1
+      MYSQL_PASSWORD: testcase1
+      MYSQL_DATABASE: testcase1
+    ports:
+      - "3308:3306"
+
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend.Dockerfile
+    working_dir: /app
+
+    volumes:
+      - ./src:/app
+    depends_on:
+      - mysql
+    environment:
+      - APP_PATH=/app
+      - APP_MYSQL_HOST=mysql:3306
+      - APP_MYSQL_USER=testcase1
+      - APP_MYSQL_PASSWORD=testcase1
+      - APP_MYSQL_DATABASE=testcase1
+      - WAIT_HOSTS=mysql:3306
+      - WAIT_HOSTS_TIMEOUT=3000
+      - WAIT_SLEEP_INTERVAL=30
+      - WAIT_HOST_CONNECT_TIMEOUT=30
+
+volumes:
+  container-db-volume:
